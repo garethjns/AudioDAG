@@ -1,28 +1,37 @@
 from functools import reduce, partial
 from typing import List, Tuple, Callable, Union
+import copy
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 from audiodag.signal.digital.conversion import pts_to_ms
 from audiodag.signal.digital.digital_siginal import DigitalSignal
+from audiodag.signal.envelopes.envelope import Envelope
 from audiodag.signal.envelopes.templates import ConstantEnvelope
 
 
 class Event(DigitalSignal):
+    def __init__(self, weight: float = 1.0,
+                 *args, **kwargs):
+        """
+
+        :param weight: Relative event weight, used when combined with other events, for example.
+        """
+
+        self.weight = weight
+        super().__init__(*args, **kwargs)
+
     def __repr__(self):
-        return f"Event(fs={self.fs}, duration={self.duration}, seed={self.seed})"
+        return f"Event(fs={self.fs}, start={self.start}, duration={self.duration}, weight={self.weight}, seed={self.seed})"
 
     def _generate_f(self) -> np.ndarray:
         """Default events is constant 1s * mag"""
+
         return np.ones(shape=(self.duration_pts,)) * self.mag
 
     def __mul__(self, other):
-        """
-        Multiplying events generates a CompoundEvent object with a generator for the combined signals.
-
-        Weighting is even.
-        """
+        """Multiplying events generates a CompoundEvent object with a generator for the combined signals."""
 
         return CompoundEvent(events=[self, other])
 
@@ -33,9 +42,10 @@ class CompoundEvent(Event):
 
     Supports combination of multiple events, but only with equal weighting and same durations for now.
     """
+
     def __init__(self, events: List[Event],
                  weights: List[float] = None,
-                 envelope = ConstantEnvelope):
+                 envelope: Envelope = ConstantEnvelope):
 
         self._verify_event_list(events)
         start, _, duration = self._new_duration(events)
@@ -46,12 +56,47 @@ class CompoundEvent(Event):
                                             fs=events[0].fs),
                          envelope=envelope)
 
-        if weights is None:
-            weights = [1 / len(events) for _ in range(len(events))]
-        self.weights = weights
-        self.events = events
+        self.events = []
+        self._assign_events(events)
+        self._assign_weights()
 
         self._generate_f = self._make_generate_f()
+
+    def __repr__(self) -> str:
+        return f"CombinedEvent(events={self.events})"
+
+    def __hash__(self) -> int:
+        return hash(str(self.events) + str(self.fs) + str(self.envelope.__name__)
+                    + str(self.duration))
+
+    def _assign_events(self, events: List[Event]) -> None:
+        # Events need to be copied here as weights may need to be updated
+        # Shouldn't need to be a deep copy, though. Can also clear any arrays, may want to parameterize this.
+        for ev in events:
+            ev = copy.copy(ev)
+            ev.clear()
+            self.events.append(ev)
+
+    @staticmethod
+    def _normalise_to_sum_1(y: np.ndarray) -> np.ndarray:
+        """Normalise vector y to a sum to 1."""
+        return y / y.sum()
+
+    def _assign_weights(self,
+                        weights: List[float] = None) -> None:
+        """
+        For the provided events, reset their normalised, relative weights. Or override them with supplied.
+        """
+        if weights is None:
+            # Set using values in events
+            weights = [ev.weight for ev in self.events]
+
+        # Normalise
+        weights = self._normalise_to_sum_1(np.array(weights))
+
+        # Update event weights with normalised
+        for ev, w in zip(self.events, weights):
+            ev.weight = w
 
     @staticmethod
     def _verify_event_list(events: List[Event]):
@@ -71,8 +116,8 @@ class CompoundEvent(Event):
     def channels(self) -> np.ndarray:
 
         y = np.zeros(shape=(len(self.events), self.duration_pts))
-        for e_i, (e, w) in enumerate(zip(self.events, self.weights)):
-            y[e_i, e.x_pts - self.start] = e.y * w
+        for e_i, e in enumerate(self.events):
+            y[e_i, e.x_pts - self.start] = e.y * e.weight
 
         return y
 
@@ -115,26 +160,20 @@ class CompoundEvent(Event):
         if show:
             plt.show()
 
-    def to_list(self) -> List[Event]:
-        evs = []
-        for ev, w in zip(self.events, self.weights):
-            evs.append(self.recursive_transverse(ev,
-                                                 last_weight=1,
-                                                 next_weight=w,
-                                                 depth=0))
+    def to_list(self) -> List[Tuple[int, Event]]:
+        return self.recursive_transverse(self)
 
-        return evs
+    def recursive_transverse(self, ev: Event,
+                             depth: int = 0,
+                             path: int = 0,
+                             previous_node: str='') -> List[Tuple[int, Event]]:
 
-    def recursive_transverse(self, ev: Union[List[Event], Event],
-                             next_weight: Union[List[float], float],
-                             last_weight: float = 1,
-                             depth: int = 0) -> Tuple[int, float, float, Event]:
+        node = f"{previous_node}_{path}({str(depth)})"
 
-        if not isinstance(ev, CompoundEvent) and not isinstance(ev, list):
-            return depth, next_weight, last_weight * next_weight, ev
-
+        if isinstance(ev, CompoundEvent):
+            return [self.recursive_transverse(e,
+                                              depth=depth + 1,
+                                              path=p,
+                                              previous_node=node) for p, e in enumerate(ev.events)]
         else:
-            return self.recursive_transverse(ev.events,
-                                             last_weight=last_weight,
-                                             next_weight=ev.weights,
-                                             depth=depth + 1)
+            return {node: ev}

@@ -173,14 +173,37 @@ class TestCompoundEvent(unittest.TestCase):
         # This should be same as weighting is equal proportions by default
         self.assertAlmostEqual(float(np.std(compound_event.y)), float(np.std(sine_event.y)))
 
-    def test_construct_from_list_of_2_set_weights(self):
-        sine_event = SineEvent()
-        compound_event = CompoundEvent(events=[sine_event, sine_event],
-                                       weights=[1, 1])
+    def test_construct_from_list_of_2_set_weights_that_sum_to_one(self):
+        sine_event = SineEvent(weight=0.5,
+                               seed=123)
+        sine_event_2 = SineEvent(weight=0.5,
+                                 seed=231)
+        compound_event = CompoundEvent(events=[sine_event, sine_event_2])
 
         self.assertAlmostEqual(float(np.mean(sine_event.y)), float(np.mean(compound_event.y)), 0)
-        # This should be greater as weights are a total of 2
-        self.assertGreater(np.std(compound_event.y), np.std(sine_event.y))
+
+        self.assertAlmostEqual(compound_event.events[0].weight, 0.5)
+        self.assertAlmostEqual(compound_event.events[1].weight, 0.5)
+
+    def test_construct_from_list_of_2_set_weights_that_dont_sum_to_one(self):
+        sine_event = SineEvent(weight=1.0,
+                               seed=123)
+        sine_event_2 = SineEvent(weight=0.5,
+                                 seed=231)
+
+        self.assertAlmostEqual(sine_event.weight, 1.0, 3)
+        self.assertAlmostEqual(sine_event_2.weight, 0.5, 3)
+
+        compound_event = CompoundEvent(events=[sine_event, sine_event_2])
+
+        self.assertAlmostEqual(float(np.mean(sine_event.y)), float(np.mean(compound_event.y)), 0)
+
+        self.assertAlmostEqual(compound_event.events[0].weight, 0.667, 3)
+        self.assertAlmostEqual(compound_event.events[1].weight, 0.333, 3)
+
+        # Check weight of original objects is unchanged
+        self.assertAlmostEqual(sine_event.weight, 1.0, 3)
+        self.assertAlmostEqual(sine_event_2.weight, 0.5, 3)
 
     def test_construct_from_list_of_3(self):
         sine_event = SineEvent()
