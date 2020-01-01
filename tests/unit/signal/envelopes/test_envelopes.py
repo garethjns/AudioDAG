@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from signal.envelopes.templates import ConstantEnvelope, CosEnvelope, CosRiseEnvelope
+from audiodag.signal.envelopes.templates import ConstantEnvelope, CosEnvelope, CosRiseEnvelope
 
 
 ONES = np.ones(shape=(1000, ))

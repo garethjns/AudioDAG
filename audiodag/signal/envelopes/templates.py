@@ -1,7 +1,7 @@
 import numpy as np
 
-from signal.digital.conversion import ms_to_pts
-from signal.envelopes.envelope import Envelope
+from audiodag.signal.digital.conversion import ms_to_pts
+from audiodag.signal.envelopes.envelope import Envelope
 
 
 class ConstantEnvelope(Envelope):

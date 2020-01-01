@@ -6,9 +6,9 @@ from unittest.mock import MagicMock
 import numpy as np
 from matplotlib import pyplot as plt
 
-from signal.events.event import Event, CompoundEvent
-from signal.events.noise import NoiseEvent
-from signal.events.tonal import SineEvent
+from audiodag.signal.events.event import Event, CompoundEvent
+from audiodag.signal.events.noise import NoiseEvent
+from audiodag.signal.events.tonal import SineEvent
 
 
 class TestEvent(unittest.TestCase):

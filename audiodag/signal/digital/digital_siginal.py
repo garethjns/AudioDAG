@@ -4,9 +4,9 @@ from typing import Union
 
 import numpy as np
 from matplotlib import pyplot as plt
-from signal.digital.conversion import ms_to_pts
 
-from signal.envelopes.templates import Envelope, ConstantEnvelope
+from audiodag.signal.digital.conversion import ms_to_pts
+from audiodag.signal.envelopes.templates import Envelope, ConstantEnvelope
 
 
 class DigitalSignal(ABC):

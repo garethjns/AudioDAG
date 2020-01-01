@@ -4,9 +4,9 @@ from typing import List, Tuple, Callable, Union
 import numpy as np
 import matplotlib.pyplot as plt
 
-from signal.digital.conversion import pts_to_ms
-from signal.digital.digital_siginal import DigitalSignal
-from signal.envelopes.templates import ConstantEnvelope
+from audiodag.signal.digital.conversion import pts_to_ms
+from audiodag.signal.digital.digital_siginal import DigitalSignal
+from audiodag.signal.envelopes.templates import ConstantEnvelope
 
 
 class Event(DigitalSignal):

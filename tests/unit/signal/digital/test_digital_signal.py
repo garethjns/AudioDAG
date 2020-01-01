@@ -4,8 +4,8 @@ from unittest.mock import patch
 import numpy as np
 from matplotlib import pyplot as plt
 
-from signal.digital.digital_siginal import DigitalSignal
-from signal.digital.conversion import pts_to_ms, ms_to_pts
+from audiodag.signal.digital.digital_siginal import DigitalSignal
+from audiodag.signal.digital.conversion import pts_to_ms, ms_to_pts
 
 
 class TestFunctions(unittest.TestCase):

@@ -1,6 +1,6 @@
 import numpy as np
 
-from signal.events.event import Event
+from audiodag.signal.events.event import Event
 
 
 class NoiseEvent(Event):
