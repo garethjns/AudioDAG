@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from audiodag.signal.events.event import Event, CompoundEvent
 from audiodag.signal.events.noise import NoiseEvent
 from audiodag.signal.events.tonal import SineEvent
+from audiodag.signal.envelopes.templates import CosRiseEnvelope
 
 
 class TestEvent(unittest.TestCase):
@@ -153,114 +154,7 @@ class TestCompoundEvent(unittest.TestCase):
         return MagicMock(fs=fs,
                          start=start,
                          duration_pts=duration_pts,
-                         x=np.linspace(start, duration_pts, duration_pts)
-                         )
-
-    def test_combiner_with_matching_events(self):
-        sine_event = SineEvent(fs=10000)
-        noise_event = NoiseEvent(mag=0.3,
-                                 fs=10000)
-
-        mock_event = self._mock_compound_event(fs=1000,
-                                               start=0,
-                                               duration_pts=200)
-
-        y = CompoundEvent._combiner(mock_event, [sine_event, noise_event])
-
-        self.assertEqual(len(mock_event.x), mock_event.duration_pts)
-        self.assertEqual(len(y), mock_event.duration_pts)
-
-        plt.plot(mock_event.x, y)
-        plt.show()
-
-    def test_combiner_with_non_matching_events(self):
-        sine_event = SineEvent(fs=1000,
-                               duration=500,
-                               start=500)
-        noise_event = NoiseEvent(mag=0.3,
-                                 duration=1000,
-                                 fs=1000)
-
-        mock_event = self._mock_compound_event(fs=1000,
-                                               start=0,
-                                               duration_pts=1000)
-
-        y = CompoundEvent._combiner(mock_event, [sine_event, noise_event])
-
-        self.assertEqual(len(mock_event.x), mock_event.duration_pts)
-        self.assertEqual(len(y), mock_event.duration_pts)
-
-        plt.plot(mock_event.x, y)
-        plt.show()
-
-    def test_combiner_with_multiple_non_matching_events(self):
-        sine_event_1 = SineEvent(fs=1000,
-                                 duration=1000,
-                                 start=0)
-        sine_event_2 = SineEvent(fs=1000,
-                                 duration=1000,
-                                 start=300)
-        noise_event = NoiseEvent(mag=0.3,
-                                 duration=1000,
-                                 fs=1000,
-                                 start=600)
-
-        mock_event = self._mock_compound_event(fs=1000,
-                                               start=0,
-                                               duration_pts=1600)
-
-        y = CompoundEvent._combiner(mock_event, [sine_event_1, sine_event_2, noise_event])
-
-        self.assertEqual(len(mock_event.x), mock_event.duration_pts)
-        self.assertEqual(len(y), mock_event.duration_pts)
-
-        plt.plot(mock_event.x, y)
-        plt.show()
-
-    def test_combiner_with_equal_weighted_events(self):
-        constant_event_1 = Event(fs=1000,
-                                 duration=1000,
-                                 start=0)
-        constant_event_2 = Event(fs=1000,
-                                 duration=1000,
-                                 start=0)
-
-        mock_event = self._mock_compound_event(fs=1000,
-                                               start=0,
-                                               duration_pts=1000)
-
-        y = CompoundEvent._combiner(mock_event, [constant_event_1, constant_event_2])
-
-        self.assertAlmostEqual(float(max(y)), 1, 3)
-        self.assertEqual(len(mock_event.x), mock_event.duration_pts)
-        self.assertEqual(len(y), mock_event.duration_pts)
-
-        plt.plot(mock_event.x, y)
-        plt.show()
-
-    def test_combiner_with_unequal_weighted_events(self):
-        constant_event_1 = Event(fs=1000,
-                                 duration=1000,
-                                 start=0)
-        constant_event_2 = Event(fs=1000,
-                                 duration=1000,
-                                 start=0)
-
-        mock_event = self._mock_compound_event(fs=1000,
-                                               start=0,
-                                               duration_pts=1000)
-
-        y = CompoundEvent._combiner(mock_event, [constant_event_1, constant_event_2],
-                                    weights=[0.5, 1])
-
-        self.assertAlmostEqual(float(max(y)), 1.5, 3)
-        self.assertEqual(len(mock_event.x), mock_event.duration_pts)
-        self.assertEqual(len(y), mock_event.duration_pts)
-
-        constant_event_1.plot()
-        constant_event_2.plot()
-        plt.plot(mock_event.x, y)
-        plt.show()
+                         x=np.linspace(start, duration_pts, duration_pts))
 
     def test_sine_noise_multiply(self):
         sine_event = SineEvent(fs=10000)
@@ -317,8 +211,6 @@ class TestCompoundEvent(unittest.TestCase):
         self.assertRaises(ValueError, lambda: CompoundEvent(events=[sine_event, sine_event, noise_event]))
 
     def test_create_from_fully_overlapping_long_list(self):
-        from signal.envelopes.templates import CosRiseEnvelope
-
         rng = np.random.RandomState(123)
 
         ev_kwargs = {'fs': 2000,

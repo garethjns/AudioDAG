@@ -43,7 +43,8 @@ class CompoundEvent(Event):
         super().__init__(fs=events[0].fs,
                          start=start,
                          duration=pts_to_ms(duration,
-                                            fs=events[0].fs))
+                                            fs=events[0].fs),
+                         envelope=envelope)
 
         if weights is None:
             weights = [1 / len(events) for _ in range(len(events))]
@@ -51,9 +52,6 @@ class CompoundEvent(Event):
         self.events = events
 
         self._generate_f = self._make_generate_f()
-
-    @property
-
 
     @staticmethod
     def _verify_event_list(events: List[Event]):
