@@ -1,9 +1,9 @@
-from functools import reduce, partial
-from typing import List, Tuple, Callable, Union
 import copy
+from functools import reduce
+from typing import List, Tuple, Callable, Iterable
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from audiodag.signal.digital.conversion import pts_to_ms
 from audiodag.signal.digital.digital_siginal import DigitalSignal
@@ -166,9 +166,9 @@ class CompoundEvent(Event):
     def recursive_transverse(self, ev: Event,
                              depth: int = 0,
                              path: int = 0,
-                             previous_node: str='') -> List[Tuple[int, Event]]:
+                             previous_node: str='|') -> Iterable[Tuple[int, Event]]:
 
-        node = f"{previous_node}_{path}({str(depth)})"
+        node = f"{previous_node} <- {path}({str(depth)})"
 
         if isinstance(ev, CompoundEvent):
             return [self.recursive_transverse(e,
@@ -176,4 +176,4 @@ class CompoundEvent(Event):
                                               path=p,
                                               previous_node=node) for p, e in enumerate(ev.events)]
         else:
-            return {node: ev}
+            return node, ev
