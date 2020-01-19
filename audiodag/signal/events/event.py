@@ -45,20 +45,27 @@ class CompoundEvent(Event):
 
     def __init__(self, events: List[Event],
                  weights: List[float] = None,
+                 start: int = None,
                  envelope: Envelope = ConstantEnvelope):
 
         self._verify_event_list(events)
-        start, _, duration = self._new_duration(events)
+        start_sub, _, duration = self._new_duration(events)
 
         super().__init__(fs=events[0].fs,
-                         start=start,
+                         start=start_sub,
                          duration=pts_to_ms(duration,
                                             fs=events[0].fs),
                          envelope=envelope)
 
         self.events = []
+
         self._assign_events(events)
         self._assign_weights()
+
+        # Adjust start of self and all sub events, if a new start is specified.
+        if start is not None:
+            self._adjust_start(start - start_sub)
+            self.start = start
 
         self._generate_f = self._make_generate_f()
 
@@ -68,6 +75,18 @@ class CompoundEvent(Event):
     def __hash__(self) -> int:
         return hash(str(self.events) + str(self.fs) + str(self.envelope.__name__)
                     + str(self.duration))
+
+    def _adjust_start(self, start_delta: int):
+        """
+        Given a delta, recursively adjust start of all parent events.
+        TODO: Recursiveness not tested....
+        """
+
+        for ev in self.events:
+            if isinstance(ev, CompoundEvent):
+                ev._adjust_start(start_delta)
+            else:
+                ev.start = ev.start + start_delta
 
     def _assign_events(self, events: List[Event]) -> None:
         # Events need to be copied here as weights may need to be updated

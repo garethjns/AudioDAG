@@ -1,3 +1,7 @@
+"""
+TODO: Replace visual checks with proper tests.
+"""
+
 import copy
 import unittest
 from functools import partial
@@ -213,7 +217,7 @@ class TestCompoundEvent(unittest.TestCase):
         self.assertAlmostEqual(float(np.mean(sine_event.y)), float(np.mean(compound_event.y)), 0)
 
     def test_construct_from_offset_list_of_3(self):
-        sine_event_1 = SineEvent(start=100,
+        sine_event_1 = SineEvent(start=200,
                                  duration=1000)
         sine_event_2 = SineEvent(start=300,
                                  duration=1000)
@@ -226,6 +230,24 @@ class TestCompoundEvent(unittest.TestCase):
         sine_event_2.plot()
         sine_event_3.plot()
         compound_event.plot(show=True)
+        compound_event.plot_subplots(show=True)
+
+    def test_construct_from_offset_list_of_3_adjusted_start(self):
+        sine_event_1 = SineEvent(start=200,
+                                 duration=1000)
+        sine_event_2 = SineEvent(start=300,
+                                 duration=1000)
+        sine_event_3 = SineEvent(start=500,
+                                 duration=1000)
+
+        compound_event = CompoundEvent(events=[sine_event_1, sine_event_2, sine_event_3],
+                                       start=0)
+
+        sine_event_1.plot()
+        sine_event_2.plot()
+        sine_event_3.plot()
+        compound_event.plot(show=True)
+        compound_event.plot_subplots(show=True)
 
     def test_incompatible_events_fs_raises_error(self):
         sine_event = SineEvent()
