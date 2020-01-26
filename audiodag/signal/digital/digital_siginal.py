@@ -5,11 +5,12 @@ from typing import Union
 import numpy as np
 from matplotlib import pyplot as plt
 
+from audiodag.common.repr_id import ReprID
 from audiodag.signal.digital.conversion import ms_to_pts
 from audiodag.signal.envelopes.templates import Envelope, ConstantEnvelope
 
 
-class DigitalSignal(ABC):
+class DigitalSignal(ReprID):
     """
     Object representing basic properties of a digital signal, handles time <-> samples conversion. Doesn't bother
     with with analog <-> bits scale on y yet, though.
@@ -50,21 +51,9 @@ class DigitalSignal(ABC):
         self._seed: int
         self._state: np.random.RandomState
 
-    @abstractmethod
     def __repr__(self) -> str:
         """__repr__ is used for id and eq, it should be redefined in children."""
         return f"DigitalTime(fs={self.fs}, duration={self.duration}, seed={self.state})"
-
-    def __hash__(self) -> int:
-        """Hash assumes important parameters are included in __repr__."""
-        return hash(self.__repr__())
-
-    def __eq__(self, other: "DigitalSignal") -> bool:
-        return self.__hash__() == other.__hash__()
-
-    def __lt__(self, other: "DigitalSignal") -> bool:
-        """Ordering is undefined, but this is necessary for things like np.unique()."""
-        return self.__hash__() < other.__hash__()
 
     def clear(self) -> None:
         """Remove the signal vector from memory."""
