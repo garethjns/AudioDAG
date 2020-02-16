@@ -3,7 +3,9 @@
 Construct digital audio signals from individual components, designed for psychophysics stimulus generations. Supports lazy construction or in-memory caching,
 
 # Install
-
+````bash
+pip install audiodag
+````
 # Usage
 
 ## Signal components
