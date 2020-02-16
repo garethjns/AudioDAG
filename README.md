@@ -33,6 +33,7 @@ class SineComponent(Component):
 sin = SineComponent(freq=12, mag=1, start=100, fs=5000, duration=1000)
 sin.plot(show=True)
 ````
+![example_sine](https://github.com/garethjns/AudioDAG/blob/master/images/example_sine.PNG) 
 
 The generation function is called when Component.y is accessed, and can be optionally cached with cache=True, or generated on the fly on each call. The envelope is applied immediately after signal generation (default = constant).
 
@@ -57,8 +58,7 @@ noise = NoiseComponent(fs=5000, duration=1000, mag=db_to_lin(ref=1, db_change=-8
 compound_component = sin * noise
 compound_component.plot_subplots(show=True)
 ````
-
-Or 
+![example_mul](https://github.com/garethjns/AudioDAG/blob/master/images/example_mul.PNG) 
 
 ### Simple - from list
 In more complex cases, for example where unequal weighting or a new envelope is required, components can be specified in a list.
@@ -77,6 +77,7 @@ compound_component  = CompoundComponent([sin, noise],
                                         envelope=CosEnvelope)
 compound_component.plot_subplots(show=True)
 ````
+![example_simple](https://github.com/garethjns/AudioDAG/blob/master/images/example_simple.PNG) 
 
 ## Complex
 ````Python
@@ -107,3 +108,4 @@ noise = NoiseComponent(start=0, duration=1000, envelope=IncreasingEnvelope,
 
 signal = CompoundComponent([sine_4, sine_2_6, sine_8_10, noise])
 ````
+![example_complex](https://github.com/garethjns/AudioDAG/blob/master/images/example_complex.png) 
