@@ -1,10 +1,10 @@
 import numpy as np
 
-from audiodag.signal.events.event import Event
+from audiodag.signal.components.component import Component
 
 
-class SineEvent(Event):
-    """Class specifically for tonal events."""
+class SineComponent(Component):
+    """Class specifically for tonal components."""
     def __init__(self,
                  freq: int = 2000,
                  *args, **kwargs):
@@ -13,5 +13,5 @@ class SineEvent(Event):
         self.freq = freq
 
     def _generate_f(self) -> np.ndarray:
-        """Generate vector for events"""
+        """Generate vector for components"""
         return np.sin(np.linspace(0, 4 * np.pi * self.freq, self.duration_pts)) * 0.5 * self.mag

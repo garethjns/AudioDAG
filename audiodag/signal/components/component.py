@@ -2,8 +2,8 @@ import copy
 from functools import reduce
 from typing import List, Tuple, Callable, Iterable
 
-import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import pyplot as plt
 
 from audiodag.signal.digital.conversion import pts_to_ms
 from audiodag.signal.digital.digital_siginal import DigitalSignal
@@ -11,12 +11,12 @@ from audiodag.signal.envelopes.envelope import Envelope
 from audiodag.signal.envelopes.templates import ConstantEnvelope
 
 
-class Event(DigitalSignal):
+class Component(DigitalSignal):
     def __init__(self, weight: float = 1.0,
                  *args, **kwargs):
         """
 
-        :param weight: Relative event weight, used when combined with other events, for example.
+        :param weight: Relative event weight, used when combined with other components, for example.
         """
 
         self.weight = weight
@@ -26,24 +26,24 @@ class Event(DigitalSignal):
         return f"Event(fs={self.fs}, start={self.start}, duration={self.duration}, weight={self.weight}, seed={self.seed})"
 
     def _generate_f(self) -> np.ndarray:
-        """Default events is constant 1s * mag"""
+        """Default components is constant 1s * mag"""
 
         return np.ones(shape=(self.duration_pts,)) * self.mag
 
     def __mul__(self, other):
-        """Multiplying events generates a CompoundEvent object with a generator for the combined signals."""
+        """Multiplying components generates a CompoundEvent object with a generator for the combined signals."""
 
-        return CompoundEvent(events=[self, other])
+        return CompoundComponent(events=[self, other])
 
 
-class CompoundEvent(Event):
+class CompoundComponent(Component):
     """
-    Object for combining events, for example adding noise to another events.
+    Object for combining components, for example adding noise to another components.
 
-    Supports combination of multiple events, but only with equal weighting and same durations for now.
+    Supports combination of multiple components, but only with equal weighting and same durations for now.
     """
 
-    def __init__(self, events: List[Event],
+    def __init__(self, events: List[Component],
                  weights: List[float] = None,
                  start: int = None,
                  envelope: Envelope = ConstantEnvelope):
@@ -62,7 +62,7 @@ class CompoundEvent(Event):
         self._assign_events(events)
         self._assign_weights()
 
-        # Adjust start of self and all sub events, if a new start is specified.
+        # Adjust start of self and all sub components, if a new start is specified.
         if start is not None:
             self._adjust_start(start - start_sub)
             self.start = start
@@ -70,7 +70,7 @@ class CompoundEvent(Event):
         self._generate_f = self._make_generate_f()
 
     def __repr__(self) -> str:
-        return f"CombinedEvent(events={self.events})"
+        return f"CombinedEvent(components={self.events})"
 
     def __hash__(self) -> int:
         return hash(str(self.events) + str(self.fs) + str(self.envelope.__name__)
@@ -78,17 +78,17 @@ class CompoundEvent(Event):
 
     def _adjust_start(self, start_delta: int):
         """
-        Given a delta, recursively adjust start of all parent events.
+        Given a delta, recursively adjust start of all parent components.
         TODO: Recursiveness not tested....
         """
 
         for ev in self.events:
-            if isinstance(ev, CompoundEvent):
+            if isinstance(ev, CompoundComponent):
                 ev._adjust_start(start_delta)
             else:
                 ev.start = ev.start + start_delta
 
-    def _assign_events(self, events: List[Event]) -> None:
+    def _assign_events(self, events: List[Component]) -> None:
         # Events need to be copied here as weights may need to be updated
         # Shouldn't need to be a deep copy, though. Can also clear any arrays, may want to parameterize this.
         for ev in events:
@@ -104,10 +104,10 @@ class CompoundEvent(Event):
     def _assign_weights(self,
                         weights: List[float] = None) -> None:
         """
-        For the provided events, reset their normalised, relative weights. Or override them with supplied.
+        For the provided components, reset their normalised, relative weights. Or override them with supplied.
         """
         if weights is None:
-            # Set using values in events
+            # Set using values in components
             weights = [ev.weight for ev in self.events]
 
         # Normalise
@@ -118,16 +118,16 @@ class CompoundEvent(Event):
             ev.weight = w
 
     @staticmethod
-    def _verify_event_list(events: List[Event]):
+    def _verify_event_list(events: List[Component]):
         check_params = ['fs']
 
         for p in check_params:
             param_values = [getattr(e, p) for e in events]
             if len(np.unique(param_values)) > 1:
-                raise ValueError(f"Param {p} is inconsistent across events: {param_values}")
+                raise ValueError(f"Param {p} is inconsistent across components: {param_values}")
 
     @staticmethod
-    def _new_duration(events: List[Event]):
+    def _new_duration(events: List[Component]):
         start = reduce(lambda ev_a, ev_b: min(ev_a, ev_b), [e.x_pts.min() for e in events])
         end = reduce(lambda ev_a, ev_b: max(ev_a, ev_b), [e.x_pts.max() for e in events])
         return start, end, end - start + 1
@@ -171,25 +171,29 @@ class CompoundEvent(Event):
                                ncols=1)
 
         for e_i, e in enumerate(self.events):
-            ax[e_i].plot(e.x, e.y)
+            ax[e_i].plot(e.x, e.y,
+                         color='k' if isinstance(e, CompoundComponent) else 'r')
             ax[e_i].set_xlim([self.x[0], self.x[-1]])
+            ax[e_i].set_title(f"Signal component {e_i}")
 
         ax[-1].plot(self.x, self.y)
+        ax[-1].set_title('Combined signal')
 
         if show:
             plt.show()
 
-    def to_list(self) -> List[Tuple[int, Event]]:
+    def to_list(self) -> List[Tuple[int, Component]]:
         return self.recursive_transverse(self)
 
-    def recursive_transverse(self, ev: Event,
+    def recursive_transverse(self, ev: Component,
                              depth: int = 0,
                              path: int = 0,
-                             previous_node: str='|') -> Iterable[Tuple[int, Event]]:
+                             previous_node: str='|') -> Iterable[Tuple[int, Component]]:
+        """Currently just prints a very crude representation of the graph to the console."""
 
         node = f"{previous_node} <- {path}({str(depth)})"
 
-        if isinstance(ev, CompoundEvent):
+        if isinstance(ev, CompoundComponent):
             return [self.recursive_transverse(e,
                                               depth=depth + 1,
                                               path=p,

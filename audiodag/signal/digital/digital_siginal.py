@@ -103,9 +103,11 @@ class DigitalSignal(ReprID):
         return y
 
     def plot(self,
-             show: bool = False):
+             show: bool = False,
+             **kwargs):
         """Plot the signal against time in ms."""
-        plt.plot(self.x, self.y)
+        plt.plot(self.x, self.y,
+                 **kwargs)
 
         if show:
             plt.show()

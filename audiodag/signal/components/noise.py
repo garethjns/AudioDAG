@@ -1,10 +1,10 @@
 import numpy as np
 
-from audiodag.signal.events.event import Event
+from audiodag.signal.components.component import Component
 
 
-class NoiseEvent(Event):
-    """Class specifically for noisy events."""
+class NoiseComponent(Component):
+    """Class specifically for noisy components."""
     def __init__(self,
                  dist: str = 'normal',
                  *args, **kwargs):
