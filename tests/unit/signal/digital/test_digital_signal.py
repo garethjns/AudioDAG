@@ -2,10 +2,12 @@ import unittest
 from unittest.mock import patch
 
 import numpy as np
-from matplotlib import pyplot as plt
 
-from audiodag.signal.digital.digital_siginal import DigitalSignal
 from audiodag.signal.digital.conversion import pts_to_ms, ms_to_pts
+from audiodag.signal.digital.digital_siginal import DigitalSignal
+
+# Use to show plots when debugging
+SHOW = False
 
 
 class TestFunctions(unittest.TestCase):
@@ -35,29 +37,31 @@ class TestDigitalSignal(unittest.TestCase):
     @classmethod
     @patch.multiple(DigitalSignal, __abstractmethods__=set())
     def setUpClass(cls) -> None:
-        cls.dt_1 = DigitalSignal(fs=100,
-                                 duration=1000)
-        cls.dt_2 = DigitalSignal(fs=100,
-                                 duration=500)
+        cls._sut_1 = DigitalSignal(fs=100,
+                                   duration=1000)
+        cls._sut_2 = DigitalSignal(fs=100,
+                                   duration=500)
 
-    def test_eq(self):
-        self.assertTrue(self.dt_1 == self.dt_1)
-        self.assertFalse(self.dt_1 == self.dt_2)
+    def test_equality_between_equals(self):
+        self.assertEqual(self._sut_1, self._sut_1)
 
-    def test_unique(self):
-        self.assertEqual(len(np.unique([self.dt_1, self.dt_1])), 1)
-        self.assertEqual(len(np.unique([self.dt_1, self.dt_2])), 2)
+    def test_equality_between_unequals(self):
+        self.assertNotEqual(self._sut_1, self._sut_2)
 
-    def test_duration_in_pts(self):
-        self.assertEqual(self.dt_1.duration_pts, 100)
+    def test_unique_works_as_expected(self):
+        self.assertEqual(len(np.unique([self._sut_1, self._sut_1])), 1)
+        self.assertEqual(len(np.unique([self._sut_1, self._sut_2])), 2)
+
+    def test_duration_in_pts_property_converts_as_expected(self):
+        self.assertEqual(self._sut_1.duration_pts, 100)
+        self.assertEqual(self._sut_2.duration_pts, 50)
 
     @patch.multiple(DigitalSignal, __abstractmethods__=set())
-    def test_with_defaults(self):
+    def test_init_with_defaults_sets_correct_duration(self):
         dt = DigitalSignal()
 
         self.assertEqual(len(dt.x), 20)
         self.assertEqual(len(dt.x_pts), 20)
 
-    def test_plot(self):
-        self.dt_1.plot()
-        plt.show()
+    def test_no_exceptions_on_plot_call(self):
+        self._sut_1.plot(show=SHOW)

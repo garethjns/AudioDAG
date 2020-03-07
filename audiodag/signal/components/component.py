@@ -158,9 +158,10 @@ class CompoundComponent(Component):
 
     def plot(self,
              channels: bool = False,
+             show: bool = False,
              *args, **kwargs):
 
-        if channels:
+        if channels & show:
             plt.plot(self.x, self.channels().T)
 
         super().plot(*args, **kwargs)

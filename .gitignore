@@ -1,3 +1,7 @@
+.idea/
+dist_old
+*.svg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
