@@ -1,50 +1,44 @@
-"""
-TODO: Replace visual checks with proper tests.
-"""
-
 import copy
 import unittest
 from functools import partial
 from unittest.mock import MagicMock
 
 import numpy as np
-from matplotlib import pyplot as plt
 
 from audiodag.signal.components.component import Component, CompoundComponent
 from audiodag.signal.components.noise import NoiseComponent
 from audiodag.signal.components.tonal import SineComponent
 from audiodag.signal.envelopes.templates import CosRiseEnvelope
 
+# Use to show plots when debugging
+SHOW = False
+
 
 class TestEvent(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.ev_1 = Component(fs=10000,
+        cls._sut = Component(fs=10000,
                              duration=20,
                              mag=1,
                              clip=np.inf)
 
     def test_length_as_expected(self):
-        self.assertEqual(len(self.ev_1.y), 200)
+        self.assertEqual(len(self._sut.y), 200)
 
-    def test_y_no_envelope(self):
-        ev = Component(fs=10000,
-                       duration=20,
-                       mag=1,
-                       clip=np.inf)
+    def test_constant_envelope_has_no_effect_on_energy_in_y(self):
+        ev = copy.deepcopy(self._sut)
         ev.envelope = lambda x: x
 
         self.assertListEqual(list(ev.y), list(np.ones(shape=(200,))))
 
-    def test_plot(self):
-        self.ev_1.plot()
-        plt.show()
+    def test_plot_raises_no_exceptions(self):
+        self._sut.plot(show=SHOW)
 
 
 class TestNoiseEvent(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.ev_1 = NoiseComponent(fs=10000,
+        cls._sut = NoiseComponent(fs=10000,
                                   duration=20,
                                   mag=1,
                                   clip=np.inf,
@@ -57,7 +51,7 @@ class TestNoiseEvent(unittest.TestCase):
                                                              clip=np.inf,
                                                              dist='invalid'))
 
-    def test_dist_statistics(self):
+    def test_expected_signal_statistics_between_normal_and_uniform_dists(self):
         ev_norm = NoiseComponent(fs=10000,
                                  duration=20,
                                  mag=1,
@@ -70,22 +64,20 @@ class TestNoiseEvent(unittest.TestCase):
                                     clip=np.inf,
                                     dist='uniform')
 
-        ev_norm.plot()
-        ev_uniform.plot()
-        plt.show()
+        ev_norm.plot(show=SHOW)
+        ev_uniform.plot(show=SHOW)
 
         self.assertAlmostEqual(float(np.mean(ev_norm.y)), 0.0, -1)
         self.assertLess(float(np.mean(ev_norm.y)), float(np.mean(ev_uniform.y)), 0)
         self.assertLess(float(np.std(ev_uniform.y)), float(np.std(ev_norm.y)))
 
     def test_consistent_y_each_regen(self):
-        y_1 = copy.deepcopy(self.ev_1.y)
+        y_1 = copy.deepcopy(self._sut)
+        y_1.clear()
 
-        self.ev_1.clear()
+        y_2 = copy.deepcopy(self._sut)
 
-        y_2 = copy.deepcopy(self.ev_1.y)
-
-        self.assertTrue(np.all(y_1 == y_2))
+        self.assertTrue(np.all(y_1.y == y_2.y))
 
     def test_no_seed_different_y(self):
         ev_1 = NoiseComponent(fs=10000,
@@ -133,22 +125,20 @@ class TestNoiseEvent(unittest.TestCase):
         self.assertFalse(ev_1 == ev_2)
         self.assertFalse(np.all(ev_1.y == ev_2.y))
 
-    def test_plot(self):
-        self.ev_1.plot()
-        plt.show()
+    def test_plot_raises_no_errors(self):
+        self._sut.plot(show=SHOW)
 
 
 class TestSineEvent(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.ev_1 = SineComponent(fs=10000,
+        cls._sut = SineComponent(fs=10000,
                                  duration=20,
                                  mag=1,
                                  clip=np.inf)
 
     def test_plot(self):
-        self.ev_1.plot()
-        plt.show()
+        self._sut.plot(show=SHOW)
 
 
 class TestCompoundEvent(unittest.TestCase):
@@ -226,11 +216,12 @@ class TestCompoundEvent(unittest.TestCase):
 
         compound_event = CompoundComponent(events=[sine_event_1, sine_event_2, sine_event_3])
 
+        # TODO: Finish
         sine_event_1.plot()
         sine_event_2.plot()
         sine_event_3.plot()
-        compound_event.plot(show=True)
-        compound_event.plot_subplots(show=True)
+        compound_event.plot(show=SHOW)
+        compound_event.plot_subplots(show=SHOW)
 
     def test_construct_from_offset_list_of_3_adjusted_start(self):
         sine_event_1 = SineComponent(start=200,
@@ -243,11 +234,12 @@ class TestCompoundEvent(unittest.TestCase):
         compound_event = CompoundComponent(events=[sine_event_1, sine_event_2, sine_event_3],
                                            start=0)
 
+        # TODO: Finish
         sine_event_1.plot()
         sine_event_2.plot()
         sine_event_3.plot()
-        compound_event.plot(show=True)
-        compound_event.plot_subplots(show=True)
+        compound_event.plot(show=SHOW)
+        compound_event.plot_subplots(show=SHOW)
 
     def test_incompatible_events_fs_raises_error(self):
         sine_event = SineComponent()
@@ -268,7 +260,7 @@ class TestCompoundEvent(unittest.TestCase):
 
         compound_event = CompoundComponent(evs)
         compound_event.plot(channels=True,
-                            show=True)
+                            show=SHOW)
 
         self.assertEqual(compound_event.y.shape[0], 200)
         self.assertEqual(compound_event.channels().shape[0], n)
@@ -287,7 +279,7 @@ class TestCompoundEvent(unittest.TestCase):
 
         compound_event = CompoundComponent(evs)
         compound_event.plot(channels=True,
-                            show=True)
+                            show=SHOW)
 
         self.assertEqual(compound_event.y.shape[0], 200 * n)
         self.assertEqual(compound_event.channels().shape[0], n)
@@ -305,58 +297,9 @@ class TestCompoundEvent(unittest.TestCase):
 
         compound_event = CompoundComponent(evs)
         compound_event.plot(channels=True,
-                            show=True)
+                            show=SHOW)
 
         self.assertEqual(compound_event.y.shape[0], 200 + 200 + 120)
         self.assertEqual(compound_event.channels().shape[0], n)
         self.assertEqual(compound_event.channels().shape[1], 200 + 200 + 120)
 
-    def test_compound_plus_normal_event(self):
-
-        ev_kwargs = {'fs': 2000,
-                     'duration': 100}
-
-        n = 3
-        start_step = 80
-        evs = [SineComponent(freq=10,
-                             start=s_i * start_step,
-                             **ev_kwargs) for s_i in range(n)]
-
-        compound_event_1 = CompoundComponent(evs)
-
-        noise_event = NoiseComponent(mag=0.06,
-                                     fs=2000,
-                                     duration = 400)
-
-        compound_event_2 = CompoundComponent([compound_event_1, noise_event])
-        compound_event_2.plot(show=True,
-                              channels=True)
-
-        compound_event_2.channels()
-
-    def test_compound_plus_compound_event(self):
-        ev_kwargs = {'fs': 2000,
-                     'duration': 100}
-
-        n = 3
-        start_step = 80
-        evs = [SineComponent(freq=10,
-                             start=s_i * start_step,
-                             **ev_kwargs) for s_i in range(n)]
-
-        compound_event_1 = CompoundComponent(evs)
-
-        noise_events = [NoiseComponent(mag=0.1,
-                                       start=100,
-                                       **ev_kwargs),
-                        NoiseComponent(mag=0.06,
-                                       start=300,
-                                       **ev_kwargs)]
-
-        compound_event_2 = CompoundComponent(noise_events)
-
-        compound_event_3 = CompoundComponent([compound_event_1, compound_event_2])
-        compound_event_3.plot(show=True,
-                              channels=True)
-
-        compound_event_3.channels()
