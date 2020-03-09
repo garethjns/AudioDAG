@@ -16,5 +16,5 @@ class ReprID(ABC):
         return self.__hash__() == other.__hash__()
 
     def __lt__(self, other: Any) -> bool:
-        """Ordering is undefined, but this is necessary for things like np.unique()."""
-        return self.__hash__() < other.__hash__()
+        """lt is necessary for things like np.unique(). Ordering is loosely defined based on start times."""
+        return self.start < other.start

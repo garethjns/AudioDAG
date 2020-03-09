@@ -23,7 +23,9 @@ class Component(DigitalSignal):
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
-        return f"Event(fs={self.fs}, start={self.start}, duration={self.duration}, weight={self.weight}, seed={self.seed})"
+        return f"Component(start={self.start}, duration={self.duration}, mag={self.mag}, fs={self.fs}," \
+               f"seed={self.seed}, cache={self.cache}, clip={'np.inf' if np.isinf(self.clip) else self.clip}, " \
+               f"weight={self.weight})"
 
     def _generate_f(self) -> np.ndarray:
         """Default components is constant 1s * mag"""
@@ -37,11 +39,7 @@ class Component(DigitalSignal):
 
 
 class CompoundComponent(Component):
-    """
-    Object for combining components, for example adding noise to another components.
-
-    Supports combination of multiple components, but only with equal weighting and same durations for now.
-    """
+    """Object for combining components, for example adding noise to another components."""
 
     def __init__(self, events: List[Component],
                  weights: List[float] = None,
@@ -60,7 +58,7 @@ class CompoundComponent(Component):
         self.events = []
 
         self._assign_events(events)
-        self._assign_weights()
+        self._assign_weights(weights)
 
         # Adjust start of self and all sub components, if a new start is specified.
         if start is not None:
@@ -70,11 +68,7 @@ class CompoundComponent(Component):
         self._generate_f = self._make_generate_f()
 
     def __repr__(self) -> str:
-        return f"CombinedEvent(components={self.events})"
-
-    def __hash__(self) -> int:
-        return hash(str(self.events) + str(self.fs) + str(self.envelope.__name__)
-                    + str(self.duration))
+        return f"CompoundComponent(events={self.events})"
 
     def _adjust_start(self, start_delta: int):
         """
@@ -103,9 +97,7 @@ class CompoundComponent(Component):
 
     def _assign_weights(self,
                         weights: List[float] = None) -> None:
-        """
-        For the provided components, reset their normalised, relative weights. Or override them with supplied.
-        """
+        """For the provided components, reset their normalised, relative weights. Or override them with supplied."""
         if weights is None:
             # Set using values in components
             weights = [ev.weight for ev in self.events]
@@ -159,12 +151,14 @@ class CompoundComponent(Component):
     def plot(self,
              channels: bool = False,
              show: bool = False,
-             *args, **kwargs):
+             **kwargs):
 
-        if channels & show:
-            plt.plot(self.x, self.channels().T)
-
-        super().plot(*args, **kwargs)
+        if channels:
+            plt.plot(self.x, self.channels().T, **kwargs)
+            if show:
+                plt.show()
+        else:
+            super().plot(show=show, **kwargs)
 
     def plot_subplots(self,
                       show: bool = False):

@@ -5,6 +5,7 @@ import numpy as np
 
 from audiodag.signal.digital.conversion import pts_to_ms, ms_to_pts
 from audiodag.signal.digital.digital_siginal import DigitalSignal
+from unittest.mock import MagicMock
 
 # Use to show plots when debugging
 SHOW = False
@@ -65,3 +66,14 @@ class TestDigitalSignal(unittest.TestCase):
 
     def test_no_exceptions_on_plot_call(self):
         self._sut_1.plot(show=SHOW)
+
+    @patch.multiple(DigitalSignal, __abstractmethods__=set())
+    def test_eval_repr_equality(self):
+        """Note that __repr__ is currently used to define equality for DigitalSignal, making this test currently
+        somewhat pointless, but this may change in the future."""
+
+        # Used by eval
+        ConstantEnvelope = MagicMock()
+
+        clone = eval(self._sut_1.__repr__())
+        self.assertEqual(self._sut_1, clone)
