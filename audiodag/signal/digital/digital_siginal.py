@@ -1,5 +1,5 @@
 import gc
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Union
 
 import numpy as np
@@ -21,7 +21,7 @@ class DigitalSignal(ReprID):
                  fs: int = 1000,
                  duration: int = 20,
                  mag: int = 1,
-                 clip: float = 2,
+                 clip: float = 2.0,
                  envelope: Envelope = ConstantEnvelope,
                  seed: Union[int, None] = None,
                  cache: bool = False) -> None:
@@ -41,7 +41,6 @@ class DigitalSignal(ReprID):
         self.fs = fs
         self.seed = seed
         self.state = seed
-        self.envelope = envelope
         self.cache = cache
         self.clip = clip
 
@@ -53,7 +52,8 @@ class DigitalSignal(ReprID):
 
     def __repr__(self) -> str:
         """__repr__ is used for id and eq, it should be redefined in children."""
-        return f"DigitalTime(fs={self.fs}, duration={self.duration}, seed={self.state})"
+        return f"DigitalSignal(start={self.start}, duration={self.duration}, mag={self.mag}, fs={self.fs}," \
+               f"seed={self.seed}, cache={self.cache}, clip={self.clip})"
 
     def clear(self) -> None:
         """Remove the signal vector from memory."""

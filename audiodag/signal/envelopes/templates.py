@@ -1,17 +1,23 @@
+from dataclasses import dataclass
+
 import numpy as np
 
 from audiodag.signal.digital.conversion import ms_to_pts
 from audiodag.signal.envelopes.envelope import Envelope
 
-from dataclasses import dataclass
 
-
+@dataclass
 class ConstantEnvelope(Envelope):
+    fs: int = None
+
     def f(self, y: np.ndarray) -> np.ndarray:
         return y
 
 
+@dataclass
 class CosEnvelope(Envelope):
+    fs: int = None
+
     def f(self, y: np.ndarray) -> np.ndarray:
         return y * (np.cos(np.linspace(1 * np.pi, 3 * np.pi, len(y))) + 1) * 0.5
 
@@ -38,6 +44,9 @@ class CosRiseEnvelope(Envelope):
         return y * envelope
 
 
+@dataclass
 class IncreasingEnvelope(Envelope):
+    fs: int = None
+
     def f(self, y):
         return y * np.linspace(0, 1, len(y))

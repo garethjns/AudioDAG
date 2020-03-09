@@ -22,17 +22,25 @@ class TestConstantEnvelope(unittest.TestCase):
     def test_envelope_no_effect_on_energy_in_empty_signal(self) -> None:
         self.assertTrue(np.all(self._sut(ZEROS) == ZEROS))
 
+    def test_eval_repr_equality(self):
+        clone = eval(self._sut.__repr__())
+        self.assertEqual(self._sut, clone)
+
 
 class TestCosEnvelope(unittest.TestCase):
     @classmethod
-    def setUpClass(_sut) -> None:
-        _sut.env = CosEnvelope()
+    def setUpClass(cls) -> None:
+        cls._sut = CosEnvelope()
 
     def test_envelope_reduces_energy_of_constant_signal(self) -> None:
-        self.assertLess(np.sum(self.env(ONES)), np.sum(ONES))
+        self.assertLess(np.sum(self._sut(ONES)), np.sum(ONES))
 
     def test_envelope_no_effect_on_energy_in_empty_signal(self) -> None:
-        self.assertTrue(np.all(np.round(self.env(ZEROS)) == ZEROS))
+        self.assertTrue(np.all(np.round(self._sut(ZEROS)) == ZEROS))
+
+    def test_eval_repr_equality(self):
+        clone = eval(self._sut.__repr__())
+        self.assertEqual(self._sut, clone)
 
 
 class TestCosRiseEnvelope(unittest.TestCase):
@@ -46,3 +54,7 @@ class TestCosRiseEnvelope(unittest.TestCase):
 
     def test_envelope_no_effect_on_energy_in_empty_signal(self) -> None:
         self.assertTrue(np.all(self._sut(ZEROS) == ZEROS))
+
+    def test_eval_repr_equality(self):
+        clone = eval(self._sut.__repr__())
+        self.assertEqual(self._sut, clone)

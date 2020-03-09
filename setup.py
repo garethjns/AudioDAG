@@ -21,17 +21,3 @@ setuptools.setup(
         "Operating System :: OS Independent"],
     python_requires='>=3.6',
     install_requires=['numpy', 'seaborn', 'pytest'])
-
-# Lazy auto version increment
-PATCH += 1
-with open("audiodag/__init__.py", "r") as fh:
-    spec = fh.readlines()
-
-new_init = []
-for l in spec:
-    if l.startswith('PATCH'):
-        l = F"PATCH = {PATCH}\n"
-    new_init.append(l)
-
-with open("audiodag/__init__.py", "w") as fh:
-    fh.writelines(new_init)

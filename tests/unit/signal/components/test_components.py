@@ -14,13 +14,13 @@ from audiodag.signal.envelopes.templates import CosRiseEnvelope
 SHOW = False
 
 
-class TestEvent(unittest.TestCase):
+class TestComponent(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls._sut = Component(fs=10000,
                              duration=20,
                              mag=1,
-                             clip=np.inf)
+                             clip=10.0)
 
     def test_length_as_expected(self):
         self.assertEqual(len(self._sut.y), 200)
@@ -34,8 +34,12 @@ class TestEvent(unittest.TestCase):
     def test_plot_raises_no_exceptions(self):
         self._sut.plot(show=SHOW)
 
+    def test_eval_repr_equality(self):
+        clone = eval(self._sut.__repr__())
+        self.assertEqual(self._sut, clone)
 
-class TestNoiseEvent(unittest.TestCase):
+
+class TestNoiseComponent(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls._sut = NoiseComponent(fs=10000,
@@ -128,8 +132,12 @@ class TestNoiseEvent(unittest.TestCase):
     def test_plot_raises_no_errors(self):
         self._sut.plot(show=SHOW)
 
+    def test_eval_repr_equality(self):
+        clone = eval(self._sut.__repr__())
+        self.assertEqual(self._sut, clone)
 
-class TestSineEvent(unittest.TestCase):
+
+class TestSineComponent(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls._sut = SineComponent(fs=10000,
@@ -141,7 +149,7 @@ class TestSineEvent(unittest.TestCase):
         self._sut.plot(show=SHOW)
 
 
-class TestCompoundEvent(unittest.TestCase):
+class TestCompoundComponent(unittest.TestCase):
 
     @staticmethod
     def _mock_compound_event(fs, start, duration_pts) -> MagicMock:
@@ -303,3 +311,19 @@ class TestCompoundEvent(unittest.TestCase):
         self.assertEqual(compound_event.channels().shape[0], n)
         self.assertEqual(compound_event.channels().shape[1], 200 + 200 + 120)
 
+    def test_eval_repr_equality(self):
+        ev_kwargs = {'fs': 2000,
+                     'duration': 100}
+
+        n = 3
+        start_step = 80
+        evs = [SineComponent(freq=10,
+                             start=s_i * start_step,
+                             **ev_kwargs) for s_i in range(n)]
+
+        compound_event = CompoundComponent(evs)
+        compound_event.plot(channels=True,
+                            show=SHOW)
+
+        clone = eval(compound_event.__repr__())
+        self.assertEqual(compound_event, clone)
