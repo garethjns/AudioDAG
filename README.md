@@ -1,5 +1,7 @@
 # AudioDAG
 
+![CI](https://github.com/garethjns/AudioDAG/workflows/CI/badge.svg?branch=master)
+
 Construct digital audio signals from individual components, designed for psychophysics stimulus generations. Supports lazy construction or in-memory caching,
 
 # Install
