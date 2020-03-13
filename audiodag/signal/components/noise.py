@@ -13,6 +13,11 @@ class NoiseComponent(Component):
 
         self.dist = dist
 
+    def __repr__(self):
+        return f"NoiseComponent(start={self.start}, duration={self.duration}, mag={self.mag}, fs={self.fs}, " \
+               f"seed={self.seed}, cache={self.cache}, clip={'np.inf' if np.isinf(self.clip) else self.clip}, " \
+               f"weight={self.weight}, dist='{self.dist}')"
+
     @property
     def dist(self):
         return self._dist

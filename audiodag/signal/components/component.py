@@ -23,7 +23,7 @@ class Component(DigitalSignal):
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
-        return f"Component(start={self.start}, duration={self.duration}, mag={self.mag}, fs={self.fs}," \
+        return f"Component(start={self.start}, duration={self.duration}, mag={self.mag}, fs={self.fs}, " \
                f"seed={self.seed}, cache={self.cache}, clip={'np.inf' if np.isinf(self.clip) else self.clip}, " \
                f"weight={self.weight})"
 
@@ -51,8 +51,7 @@ class CompoundComponent(Component):
 
         super().__init__(fs=events[0].fs,
                          start=start_sub,
-                         duration=pts_to_ms(duration,
-                                            fs=events[0].fs),
+                         duration=duration,
                          envelope=envelope)
 
         self.events = []
@@ -119,16 +118,15 @@ class CompoundComponent(Component):
                 raise ValueError(f"Param {p} is inconsistent across components: {param_values}")
 
     @staticmethod
-    def _new_duration(events: List[Component]):
-        start = reduce(lambda ev_a, ev_b: min(ev_a, ev_b), [e.x_pts.min() for e in events])
-        end = reduce(lambda ev_a, ev_b: max(ev_a, ev_b), [e.x_pts.max() for e in events])
-        return start, end, end - start + 1
+    def _new_duration(events: List[Component]) -> Tuple[int, int, int]:
+        start = int(reduce(lambda ev_a, ev_b: min(ev_a, ev_b), [e.x.min() for e in events]))
+        end = int(reduce(lambda ev_a, ev_b: max(ev_a, ev_b), [e.x.max() for e in events]))
+        return start, end, end - start
 
     def channels(self) -> np.ndarray:
-
         y = np.zeros(shape=(len(self.events), self.duration_pts))
         for e_i, e in enumerate(self.events):
-            y[e_i, e.x_pts - self.start] = e.y * e.weight
+            y[e_i, e.x_pts - self.start_pts] = e.y * e.weight
 
         return y
 
@@ -172,6 +170,7 @@ class CompoundComponent(Component):
             ax[e_i].set_title(f"Signal component {e_i}")
 
         ax[-1].plot(self.x, self.y)
+        ax[-1].set_xlim([self.x[0], self.x[-1]])
         ax[-1].set_title('Combined signal')
 
         if show:
@@ -183,7 +182,7 @@ class CompoundComponent(Component):
     def recursive_transverse(self, ev: Component,
                              depth: int = 0,
                              path: int = 0,
-                             previous_node: str='|') -> Iterable[Tuple[int, Component]]:
+                             previous_node: str = '|') -> Iterable[Tuple[int, Component]]:
         """Currently just prints a very crude representation of the graph to the console."""
 
         node = f"{previous_node} <- {path}({str(depth)})"

@@ -50,6 +50,9 @@ class DigitalSignal(ReprID):
         self._seed: int
         self._state: np.random.RandomState
 
+    def __len__(self) -> int:
+        return self.duration_pts
+
     def __repr__(self) -> str:
         """__repr__ is used for id and eq, it should be redefined in children."""
         return f"DigitalSignal(start={self.start}, duration={self.duration}, mag={self.mag}, fs={self.fs}," \
@@ -108,6 +111,7 @@ class DigitalSignal(ReprID):
         """Plot the signal against time in ms."""
         plt.plot(self.x, self.y,
                  **kwargs)
+        plt.xlim([self.x[0], self.x[-1]])
 
         if show:
             plt.show()
