@@ -1,6 +1,5 @@
 # AudioDAG
-
-![CI](https://github.com/garethjns/AudioDAG/workflows/CI/badge.svg?branch=master)
+![CI](https://github.com/garethjns/AudioDAG/workflows/CI/badge.svg?branch=master) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=garethjns_AudioDAG&metric=alert_status)](https://sonarcloud.io/dashboard?id=garethjns_AudioDAG)
 
 Construct digital audio signals from individual components, designed for psychophysics stimulus generations. Supports lazy construction or in-memory caching,
 
