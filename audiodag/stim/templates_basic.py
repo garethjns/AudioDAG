@@ -1,7 +1,7 @@
-from audiodag.signal.digital.conversion import db_to_lin
-from audiodag.signal.components.tonal import SineComponent
-from audiodag.signal.components.noise import NoiseComponent
 from audiodag.signal.components.component import CompoundComponent
+from audiodag.signal.components.noise_component import NoiseComponent
+from audiodag.signal.components.tonal_component import SineComponent
+from audiodag.signal.digital.conversion import db_to_lin
 
 
 def template_noisy_sine(duration: int = 1000,
@@ -24,13 +24,12 @@ def template_noisy_sine(duration: int = 1000,
     noise = NoiseComponent(fs=fs,
                            duration=duration,
                            mag=db_to_lin(ref=1,
-                                     db_change=noise_mag))
+                                         db_change=noise_mag))
 
     return CompoundComponent([sin, noise])
 
 
 if __name__ == "__main__":
-
     ev = template_noisy_sine()
     ev.plot(show=True,
             channels=True)
