@@ -52,8 +52,8 @@ In simple cases, these can be constructed by multiplying components together. Fo
 ### Simple - mul
 ````python
 from audiodag.signal.digital.conversion import db_to_lin
-from audiodag.signal.components.tonal import SineComponent
-from audiodag.signal.components.noise import NoiseComponent
+from audiodag.signal.components.tonal_component import SineComponent
+from audiodag.signal.components.noise_component import NoiseComponent
 
 sin = SineComponent(freq=12, mag=1, fs=5000, duration=1000)
 noise = NoiseComponent(fs=5000, duration=1000, mag=db_to_lin(ref=1, db_change=-80))
@@ -68,8 +68,8 @@ In more complex cases, for example where unequal weighting or a new envelope is 
 
 ````python
 from audiodag.signal.digital.conversion import db_to_lin
-from audiodag.signal.components.tonal import SineComponent
-from audiodag.signal.components.noise import NoiseComponent
+from audiodag.signal.components.tonal_component import SineComponent
+from audiodag.signal.components.noise_component import NoiseComponent
 from audiodag.signal.components.component import CompoundComponent
 from audiodag.signal.envelopes.templates import CosEnvelope
 
@@ -87,8 +87,8 @@ compound_component.plot_subplots(show=True)
 from audiodag.signal.digital.conversion import db_to_lin
 from audiodag.signal.envelopes.templates import IncreasingEnvelope
 from audiodag.signal.components.component import CompoundComponent
-from audiodag.signal.components.noise import NoiseComponent
-from audiodag.signal.components.tonal import SineComponent
+from audiodag.signal.components.noise_component import NoiseComponent
+from audiodag.signal.components.tonal_component import SineComponent
 
 start = 0
 sine_4 = SineComponent(start=start, duration=1400, freq=4)
@@ -110,5 +110,6 @@ noise = NoiseComponent(start=0, duration=1000, envelope=IncreasingEnvelope,
                        mag=db_to_lin(ref=1, db_change=-120))
 
 signal = CompoundComponent([sine_4, sine_2_6, sine_8_10, noise])
+signal.plot_subplots(show=True)
 ````
 ![example_complex](https://github.com/garethjns/AudioDAG/blob/master/images/example_complex.png) 

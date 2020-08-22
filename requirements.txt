@@ -1,6 +1,4 @@
 numpy
 matplotlib
-seaborn
 pytest
-ipython
 dataclasses

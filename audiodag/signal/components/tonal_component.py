@@ -5,6 +5,7 @@ from audiodag.signal.components.component import Component
 
 class SineComponent(Component):
     """Class specifically for tonal components."""
+
     def __init__(self,
                  freq: int = 2000,
                  *args, **kwargs):
@@ -15,7 +16,7 @@ class SineComponent(Component):
     def __repr__(self):
         return f"SineComponent(start={self.start}, duration={self.duration}, mag={self.mag}, fs={self.fs}, " \
                f"seed={self.seed}, cache={self.cache}, clip={'np.inf' if np.isinf(self.clip) else self.clip}, " \
-               f"weight={self.weight}, freq={self.freq})"
+               f"normalise={self.normalise}, weight={self.weight}, freq={self.freq})"
 
     def _generate_f(self) -> np.ndarray:
         """Generate vector for components"""

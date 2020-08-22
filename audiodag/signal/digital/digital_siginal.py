@@ -24,7 +24,8 @@ class DigitalSignal(ReprID):
                  clip: float = 2.0,
                  envelope: Envelope = ConstantEnvelope,
                  seed: Union[int, None] = None,
-                 cache: bool = False) -> None:
+                 cache: bool = False,
+                 normalise: bool = False) -> None:
         """
 
         :param start: Start time, in ms.
@@ -34,6 +35,7 @@ class DigitalSignal(ReprID):
         :param clip: Max positive magnitude of signal.
         :param seed: Integer used to set numpy RandomState used for generating stochastic signals.
         :param cache: If True, hold signal in memory after generation. Otherwise generate each time it's accessed.
+        :param normalise: Whether or not to normalise the signal to 0 -> 1. Done as a final step, after clipping etc.
         """
         self.start = start
         self.duration = duration
@@ -43,6 +45,7 @@ class DigitalSignal(ReprID):
         self.state = seed
         self.cache = cache
         self.clip = clip
+        self.normalise = normalise
 
         self.envelope = envelope(fs=fs)
 
@@ -63,6 +66,13 @@ class DigitalSignal(ReprID):
         self._y = None
         gc.collect()
 
+    def _normalise(self, y: np.ndarray) -> np.ndarray:
+        if self.normalise:
+            y_min = y.min()
+            return (y - y_min) / (y.max() - y_min)
+        else:
+            return y
+
     @abstractmethod
     def _generate_f(self) -> np.ndarray:
         """Function to generate Signal. This should be overloaded in child."""
@@ -76,6 +86,7 @@ class DigitalSignal(ReprID):
         """
         y = self._generate_f()
         y = self.envelope(y)
+        y = self._normalise(y)
         y[y > self.clip] = self.clip
 
         return y

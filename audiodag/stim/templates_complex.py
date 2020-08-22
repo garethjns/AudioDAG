@@ -3,8 +3,8 @@ import numpy as np
 from audiodag.signal.digital.conversion import db_to_lin
 from audiodag.signal.envelopes.templates import IncreasingEnvelope
 from audiodag.signal.components.component import CompoundComponent
-from audiodag.signal.components.noise import NoiseComponent
-from audiodag.signal.components.tonal import SineComponent
+from audiodag.signal.components.noise_component import NoiseComponent
+from audiodag.signal.components.tonal_component import SineComponent
 
 
 def template_complex():

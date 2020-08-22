@@ -73,6 +73,7 @@ class TestDigitalSignal(unittest.TestCase):
         somewhat pointless, but this may change in the future."""
 
         # Used by eval
+        # noinspection PyPep8Naming
         ConstantEnvelope = MagicMock()
 
         clone = eval(self._sut_1.__repr__())

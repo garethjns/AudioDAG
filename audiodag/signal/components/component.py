@@ -5,7 +5,6 @@ from typing import List, Tuple, Callable, Iterable
 import numpy as np
 from matplotlib import pyplot as plt
 
-from audiodag.signal.digital.conversion import pts_to_ms
 from audiodag.signal.digital.digital_siginal import DigitalSignal
 from audiodag.signal.envelopes.envelope import Envelope
 from audiodag.signal.envelopes.templates import ConstantEnvelope
@@ -25,7 +24,7 @@ class Component(DigitalSignal):
     def __repr__(self):
         return f"Component(start={self.start}, duration={self.duration}, mag={self.mag}, fs={self.fs}, " \
                f"seed={self.seed}, cache={self.cache}, clip={'np.inf' if np.isinf(self.clip) else self.clip}, " \
-               f"weight={self.weight})"
+               f"weight={self.weight}, normalise={self.normalise})"
 
     def _generate_f(self) -> np.ndarray:
         """Default components is constant 1s * mag"""
@@ -41,18 +40,18 @@ class Component(DigitalSignal):
 class CompoundComponent(Component):
     """Object for combining components, for example adding noise to another components."""
 
-    def __init__(self, events: List[Component],
+    def __init__(self, events: List[Component], *args,
                  weights: List[float] = None,
                  start: int = None,
-                 envelope: Envelope = ConstantEnvelope):
+                 envelope: Envelope = ConstantEnvelope, **kwargs):
 
         self._verify_event_list(events)
         start_sub, _, duration = self._new_duration(events)
 
-        super().__init__(fs=events[0].fs,
+        super().__init__(*args, fs=events[0].fs,
                          start=start_sub,
                          duration=duration,
-                         envelope=envelope)
+                         envelope=envelope, **kwargs)
 
         self.events = []
 
@@ -67,7 +66,7 @@ class CompoundComponent(Component):
         self._generate_f = self._make_generate_f()
 
     def __repr__(self) -> str:
-        return f"CompoundComponent(events={self.events})"
+        return f"CompoundComponent(events={self.events}, normalise={self.normalise})"
 
     def _adjust_start(self, start_delta: int):
         """
@@ -146,20 +145,18 @@ class CompoundComponent(Component):
         """
         return self._combiner
 
-    def plot(self,
-             channels: bool = False,
-             show: bool = False,
-             **kwargs):
+    def plot(self, channels: bool = False, show: bool = False, **kwargs):
 
         if channels:
             plt.plot(self.x, self.channels().T, **kwargs)
+            plt.xlabel('Time')
+            plt.ylabel('Mag.')
             if show:
                 plt.show()
         else:
             super().plot(show=show, **kwargs)
 
-    def plot_subplots(self,
-                      show: bool = False):
+    def plot_subplots(self, show: bool = False):
         fig, ax = plt.subplots(nrows=len(self.events) + 1,
                                ncols=1)
 
