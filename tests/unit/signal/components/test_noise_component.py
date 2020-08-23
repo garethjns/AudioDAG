@@ -74,3 +74,18 @@ class TestNoiseComponent(unittest.TestCase):
     def test_eval_repr_equality(self):
         clone = eval(self._sut.__repr__())
         self.assertEqual(self._sut, clone)
+
+    def test_cache_keeps_generated_array(self):
+        # Arrange
+        ev1 = NoiseComponent(fs=200, duration=20, mag=1, clip=10.0, cache=False)
+        ev2 = NoiseComponent(fs=200, duration=20, mag=1, clip=10.0, cache=True)
+
+        # Act
+        ev1_y = ev1.y
+        ev2_y = ev2.y
+
+        # Assert
+        self.assertIsInstance(ev1_y, np.ndarray)
+        self.assertIsInstance(ev2_y, np.ndarray)
+        self.assertIsNone(ev1._y)
+        self.assertIsNotNone(ev2._y)

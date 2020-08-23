@@ -22,3 +22,18 @@ class TestSineComponent(unittest.TestCase):
         self.assertFalse(np.all(ev_1.y == ev_2.y))
         self.assertLessEqual(ev_2.y.max(), 1.0)
         self.assertGreaterEqual(ev_2.y.min(), 0.0)
+
+    def test_cache_keeps_generated_array(self):
+        # Arrange
+        ev1 = SineComponent(fs=200, duration=20, mag=1, clip=10.0, cache=False)
+        ev2 = SineComponent(fs=200, duration=20, mag=1, clip=10.0, cache=True)
+
+        # Act
+        ev1_y = ev1.y
+        ev2_y = ev2.y
+
+        # Assert
+        self.assertIsInstance(ev1_y, np.ndarray)
+        self.assertIsInstance(ev2_y, np.ndarray)
+        self.assertIsNone(ev1._y)
+        self.assertIsNotNone(ev2._y)
