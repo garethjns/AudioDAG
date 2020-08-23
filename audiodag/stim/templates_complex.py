@@ -1,10 +1,8 @@
-import numpy as np
-
-from audiodag.signal.digital.conversion import db_to_lin
-from audiodag.signal.envelopes.templates import IncreasingEnvelope
 from audiodag.signal.components.component import CompoundComponent
 from audiodag.signal.components.noise_component import NoiseComponent
 from audiodag.signal.components.tonal_component import SineComponent
+from audiodag.signal.digital.conversion import db_to_lin
+from audiodag.signal.envelopes.templates import IncreasingEnvelope
 
 
 def template_complex():
@@ -49,7 +47,7 @@ def template_complex():
                            duration=1000,
                            envelope=IncreasingEnvelope,
                            mag=db_to_lin(ref=1,
-                                     db_change=-120))
+                                         db_change=-120))
 
     return CompoundComponent([sine_4, sine_2_6, sine_8_10, noise])
 

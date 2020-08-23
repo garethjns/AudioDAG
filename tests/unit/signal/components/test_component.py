@@ -46,3 +46,18 @@ class TestComponent(unittest.TestCase):
     def test_construct_from_list_of_2_inconsistent_fs_raises_error(self):
         other_event = Component(fs=200, duration=20, mag=1, clip=10.0)
         self.assertRaises(ValueError, lambda: CompoundComponent(events=[self._sut, other_event]))
+
+    def test_cache_keeps_generated_array(self):
+        # Arrange
+        ev1 = Component(fs=200, duration=20, mag=1, clip=10.0, cache=False)
+        ev2 = Component(fs=200, duration=20, mag=1, clip=10.0, cache=True)
+
+        # Act
+        ev1_y = ev1.y
+        ev2_y = ev2.y
+
+        # Assert
+        self.assertIsInstance(ev1_y, np.ndarray)
+        self.assertIsInstance(ev2_y, np.ndarray)
+        self.assertIsNone(ev1._y)
+        self.assertIsNotNone(ev2._y)

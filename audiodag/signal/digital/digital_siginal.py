@@ -64,6 +64,10 @@ class DigitalSignal(ReprID):
     def clear(self) -> None:
         """Remove the signal vector from memory."""
         self._y = None
+
+    @staticmethod
+    def clear_memory():
+        """Clear previous self._ys. Slow, so should be done manually as appropriate"""
         gc.collect()
 
     def _normalise(self, y: np.ndarray) -> np.ndarray:

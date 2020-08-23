@@ -334,3 +334,22 @@ class TestCompoundComponent(unittest.TestCase):
         self.assertFalse(np.all(compound_1.y == compound_2.y))
         self.assertLessEqual(compound_2.y.max(), 1.0)
         self.assertGreaterEqual(compound_2.y.min(), 0.0)
+
+    def test_cache_keeps_generated_array(self):
+        # Arrange
+        ev_kwargs = {'fs': 1600, 'duration': 200}
+        noise_events = [NoiseComponent(mag=0.1, start=100, **ev_kwargs),
+                        NoiseComponent(mag=0.06, start=300, **ev_kwargs)]
+
+        compound_1 = self._sut(noise_events, cache=False)
+        compound_2 = self._sut(noise_events, cache=True)
+
+        # Act
+        ev1_y = compound_1.y
+        ev2_y = compound_2.y
+
+        # Assert
+        self.assertIsInstance(ev1_y, np.ndarray)
+        self.assertIsInstance(ev2_y, np.ndarray)
+        self.assertIsNone(compound_1._y)
+        self.assertIsNotNone(compound_2._y)
