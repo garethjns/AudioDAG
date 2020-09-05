@@ -3,7 +3,7 @@ import unittest
 
 from audiodag.signal.components.component import CompoundComponent, Component
 from audiodag.signal.components.noise_component import NoiseComponent
-from audiodag.signal.components.tonal_component import SineComponent
+from audiodag.signal.components.sine_component import SineComponent
 
 # Use to show plots when debugging
 SHOW = os.environ.get('SHOW_DEBUG_PLOTS') is not None
@@ -100,56 +100,56 @@ class TestCompoundComponent(unittest.TestCase):
 
     def test_specific_msi_models_two_gap_bug_working_condition(self):
         """Testing specific bug from use in msi models stim."""
-        stim = CompoundComponent(events=[
+        stim = CompoundComponent(components=[
             Component(start=0, duration=2000, mag=0.02, fs=1000, seed=1283778829, cache=False, clip=2.0,
                       weight=0.08695652173913043),
             Component(start=1205, duration=50, mag=0.02, fs=1000, seed=604704893, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1255, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1255, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),
             Component(start=1280, duration=25, mag=0.02, fs=1000, seed=265799168, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1305, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1305, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),
             Component(start=1330, duration=50, mag=0.02, fs=1000, seed=335768414, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1380, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1380, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),
             Component(start=1405, duration=50, mag=0.02, fs=1000, seed=1914910913, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1455, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1455, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),
             Component(start=1480, duration=25, mag=0.02, fs=1000, seed=98974688, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1505, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1505, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),
             Component(start=1530, duration=25, mag=0.02, fs=1000, seed=1642792235, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1555, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1555, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),
             Component(start=1580, duration=50, mag=0.02, fs=1000, seed=246687274, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1630, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1630, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),
             Component(start=1655, duration=50, mag=0.02, fs=1000, seed=449561071, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1705, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1705, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),
             Component(start=1730, duration=25, mag=0.02, fs=1000, seed=1339302259, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1755, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1755, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),
             Component(start=1780, duration=50, mag=0.02, fs=1000, seed=700116608, cache=False, clip=2.0,
-                      weight=0.043478260869565216), CompoundComponent(events=[
+                      weight=0.043478260869565216), CompoundComponent(components=[
                 Component(start=1830, duration=25, mag=2, fs=1000, seed=885587907, cache=False, clip=2.0, weight=0.5),
                 Component(start=1830, duration=25, mag=0.02, fs=1000, seed=1242102769, cache=False, clip=2.0,
                           weight=0.5)]),

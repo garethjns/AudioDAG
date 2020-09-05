@@ -37,15 +37,24 @@ class TestComponent(unittest.TestCase):
         self.assertRaises(ValueError, lambda: self._sut * other_event)
 
     def test_construct_from_list_of_2(self):
-        compound_event = CompoundComponent(events=[self._sut, self._sut])
+        compound_event = CompoundComponent(components=[self._sut, self._sut])
 
+        self.assertAlmostEqual(1, float(np.mean(self._sut.y)))
+        self.assertAlmostEqual(2, float(np.mean(compound_event.y)))  # Weights not normalised, so grows
+        # This should be same as weighting is equal proportions by default
+        self.assertAlmostEqual(float(np.std(compound_event.y)), float(np.std(self._sut.y)))
+
+    def test_construct_from_list_of_2_with_normalise_weights(self):
+        compound_event = CompoundComponent(components=[self._sut, self._sut], normalise_weights=True)
+
+        # Weights normalised, limiting signal power growth
         self.assertAlmostEqual(float(np.mean(self._sut.y)), float(np.mean(compound_event.y)), 0)
         # This should be same as weighting is equal proportions by default
         self.assertAlmostEqual(float(np.std(compound_event.y)), float(np.std(self._sut.y)))
 
     def test_construct_from_list_of_2_inconsistent_fs_raises_error(self):
         other_event = Component(fs=200, duration=20, mag=1, clip=10.0)
-        self.assertRaises(ValueError, lambda: CompoundComponent(events=[self._sut, other_event]))
+        self.assertRaises(ValueError, lambda: CompoundComponent(components=[self._sut, other_event]))
 
     def test_cache_keeps_generated_array(self):
         # Arrange

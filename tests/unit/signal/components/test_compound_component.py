@@ -6,7 +6,7 @@ import numpy as np
 
 from audiodag.signal.components.component import CompoundComponent
 from audiodag.signal.components.noise_component import NoiseComponent
-from audiodag.signal.components.tonal_component import SineComponent
+from audiodag.signal.components.sine_component import SineComponent
 from audiodag.signal.envelopes.templates import CosRiseEnvelope
 from tests.unit.signal.components.test_component import SHOW
 
@@ -42,7 +42,24 @@ class TestCompoundComponent(unittest.TestCase):
         sine_event = SineComponent()
 
         # Act
-        compound_event = self._sut(events=[sine_event, sine_event])
+        compound_event = self._sut(components=[sine_event, sine_event])
+
+        # Assert
+        self.assertEqual(1000, compound_event.fs)
+        self.assertEqual(20, compound_event.duration)
+        self.assertEqual(20, compound_event.duration_pts)
+        self.assertEqual(0, compound_event.start)
+        self.assertEqual(0, compound_event.start_pts)
+        self.assertEqual(2, len(compound_event.events))
+        self.assertAlmostEqual(float(np.mean(sine_event.y)), float(np.mean(compound_event.y)), 0)
+        self.assertAlmostEqual(float(np.std(sine_event.y)) * 2, float(np.std(compound_event.y)))
+
+    def test_construct_from_list_of_2_with_normalised_weights(self):
+        # Arrange
+        sine_event = SineComponent()
+
+        # Act
+        compound_event = self._sut(components=[sine_event, sine_event], normalise_weights=True)
 
         # Assert
         self.assertEqual(1000, compound_event.fs)
@@ -53,7 +70,7 @@ class TestCompoundComponent(unittest.TestCase):
         self.assertEqual(2, len(compound_event.events))
         self.assertAlmostEqual(float(np.mean(sine_event.y)), float(np.mean(compound_event.y)), 0)
         # This should be same as weighting is equal proportions by default
-        self.assertAlmostEqual(float(np.std(compound_event.y)), float(np.std(sine_event.y)))
+        self.assertAlmostEqual(float(np.std(sine_event.y)), float(np.std(compound_event.y)))
 
     def test_construct_from_list_of_2_set_weights_that_sum_to_one(self):
         # Arrange
@@ -61,7 +78,7 @@ class TestCompoundComponent(unittest.TestCase):
         sine_event_2 = SineComponent(weight=0.5, seed=231)
 
         # Act
-        compound_event = self._sut(events=[sine_event, sine_event_2])
+        compound_event = self._sut(components=[sine_event, sine_event_2])
 
         # Assert
         self.assertEqual(1000, compound_event.fs)
@@ -74,11 +91,11 @@ class TestCompoundComponent(unittest.TestCase):
         self.assertAlmostEqual(compound_event.events[0].weight, 0.5)
         self.assertAlmostEqual(compound_event.events[1].weight, 0.5)
 
-    def test_construct_from_list_of_2_set_weights_that_dont_sum_to_one(self):
+    def test_construct_from_list_of_2_set_weights_that_dont_sum_to_one_with_normalise_weights(self):
         sine_event = SineComponent(weight=1.0, seed=123)
         sine_event_2 = SineComponent(weight=0.5, seed=231)
 
-        compound_event = self._sut(events=[sine_event, sine_event_2])
+        compound_event = self._sut(components=[sine_event, sine_event_2], normalise_weights=True)
 
         # Assert
         # Check weight of original objects is unchanged but compound is normalised
@@ -99,7 +116,7 @@ class TestCompoundComponent(unittest.TestCase):
         noise_event = NoiseComponent()
 
         # Act
-        compound_event = self._sut(events=[sine_event, sine_event, noise_event])
+        compound_event = self._sut(components=[sine_event, sine_event, noise_event])
 
         # Assert
         self.assertEqual(1000, compound_event.fs)
@@ -116,7 +133,7 @@ class TestCompoundComponent(unittest.TestCase):
         sine_event_3 = SineComponent(start=500, duration=1000)
 
         # Act
-        compound_event = CompoundComponent(events=[sine_event_1, sine_event_2, sine_event_3])
+        compound_event = CompoundComponent(components=[sine_event_1, sine_event_2, sine_event_3])
 
         # Assert
         self.assertEqual(1000, compound_event.fs)
@@ -139,7 +156,7 @@ class TestCompoundComponent(unittest.TestCase):
         sine_event_3 = SineComponent(start=500, duration=1000, fs=150)
 
         # Act
-        compound_event = self._sut(events=[sine_event_1, sine_event_2, sine_event_3])
+        compound_event = self._sut(components=[sine_event_1, sine_event_2, sine_event_3])
 
         # Assert
         self.assertEqual(150, compound_event.fs)
@@ -163,7 +180,7 @@ class TestCompoundComponent(unittest.TestCase):
         sine_event_3 = SineComponent(start=500, duration=1000)
 
         # Act
-        compound_event = self._sut(events=[sine_event_1, sine_event_2, sine_event_3],
+        compound_event = self._sut(components=[sine_event_1, sine_event_2, sine_event_3],
                                    start=0)
 
         # Assert
@@ -187,7 +204,7 @@ class TestCompoundComponent(unittest.TestCase):
         noise_event = NoiseComponent(fs=100)
 
         # Acert
-        self.assertRaises(ValueError, lambda: self._sut(events=[sine_event, sine_event, noise_event]))
+        self.assertRaises(ValueError, lambda: self._sut(components=[sine_event, sine_event, noise_event]))
 
     def test_create_from_fully_overlapping_long_list(self):
         # Arrange
@@ -218,8 +235,7 @@ class TestCompoundComponent(unittest.TestCase):
         rng = np.random.RandomState(123)
         ev_kwargs = {'fs': 2000, 'duration': 100}
         n = 6
-        evs = [SineComponent(freq=f,
-                             start=s_i * 100,
+        evs = [SineComponent(freq=f, start=s_i * 100,
                              **ev_kwargs) for s_i, f in enumerate(rng.randint(5, 10, 6))]
 
         # Act
@@ -236,16 +252,14 @@ class TestCompoundComponent(unittest.TestCase):
         self.assertEqual(0, compound_event.start)
         self.assertEqual(0, compound_event.start_pts)
 
-        compound_event.plot(channels=True,
-                            show=SHOW)
+        compound_event.plot(channels=True, show=SHOW)
 
     def test_create_from_partially_overlapping_long_list(self):
         # Arrange
         ev_kwargs = {'fs': 2000, 'duration': 100}
         n = 3
         start_step = 80
-        evs = [SineComponent(freq=10,
-                             start=s_i * start_step,
+        evs = [SineComponent(freq=10, start=s_i * start_step,
                              **ev_kwargs) for s_i in range(n)]
 
         # Act
@@ -261,8 +275,7 @@ class TestCompoundComponent(unittest.TestCase):
         self.assertEqual(0, compound_event.start)
         self.assertEqual(0, compound_event.start_pts)
 
-        compound_event.plot(channels=True,
-                            show=SHOW)
+        compound_event.plot(channels=True, show=SHOW)
 
     def test_eval_repr_equality(self):
         # Arrange
@@ -288,8 +301,7 @@ class TestCompoundComponent(unittest.TestCase):
         self.assertEqual(clone.start, compound_event.start)
         self.assertEqual(clone.start_pts, compound_event.start_pts)
 
-        compound_event.plot(channels=True,
-                            show=SHOW)
+        compound_event.plot(channels=True, show=SHOW)
 
     def test_previous_start_bug(self):
         """

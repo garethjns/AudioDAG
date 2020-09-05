@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from audiodag.signal.components.tonal_component import SineComponent
+from audiodag.signal.components.sine_component import SineComponent
 from tests.unit.signal.components.test_component import SHOW
 
 
