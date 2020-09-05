@@ -1,6 +1,6 @@
 from audiodag.signal.components.component import CompoundComponent
 from audiodag.signal.components.noise_component import NoiseComponent
-from audiodag.signal.components.tonal_component import SineComponent
+from audiodag.signal.components.sine_component import SineComponent
 from audiodag.signal.digital.conversion import db_to_lin
 from audiodag.signal.envelopes.templates import IncreasingEnvelope
 

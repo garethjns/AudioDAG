@@ -34,28 +34,40 @@ class Component(DigitalSignal):
     def __mul__(self, other):
         """Multiplying components generates a CompoundEvent object with a generator for the combined signals."""
 
-        return CompoundComponent(events=[self, other])
+        return CompoundComponent(components=[self, other])
 
 
 class CompoundComponent(Component):
     """Object for combining components, for example adding noise to another components."""
 
-    def __init__(self, events: List[Component], *args,
+    def __init__(self, components: List[Component], *args,
                  weights: List[float] = None,
+                 normalise_weights: bool = False,
                  start: int = None,
                  envelope: Envelope = ConstantEnvelope, **kwargs):
+        """
 
-        self._verify_event_list(events)
-        start_sub, _, duration = self._new_duration(events)
+        :param components: List of components to combine.
+        :param weights: List of weights for each component. Default assumes equal for all.
+        :param normalise_weights: Whether or not to normalise weights to sum to 1. Convenient for constraining
+                                  overlapping signals.
+                                  However, bear in mind that if this is on, non-overlapping signals will shrink
+                                  proportionally with the number of components, even if all weights are 1.
+        :param start: New start time for the component. if None, start is inherited from combined components.
+        """
 
-        super().__init__(*args, fs=events[0].fs,
+        self.normalise_weights = normalise_weights
+        self._verify_event_list(components)
+        start_sub, _, duration = self._new_duration(components)
+
+        super().__init__(*args, fs=components[0].fs,
                          start=start_sub,
                          duration=duration,
                          envelope=envelope, **kwargs)
 
         self.events = []
 
-        self._assign_events(events)
+        self._assign_events(components)
         self._assign_weights(weights)
 
         # Adjust start of self and all sub components, if a new start is specified.
@@ -66,7 +78,8 @@ class CompoundComponent(Component):
         self._generate_f = self._make_generate_f()
 
     def __repr__(self) -> str:
-        return f"CompoundComponent(events={self.events}, normalise={self.normalise})"
+        return f"CompoundComponent(components={self.events}, start={self.start}, weights={self.weights}," \
+               f"normalise={self.normalise})"
 
     def _adjust_start(self, start_delta: int):
         """
@@ -101,11 +114,14 @@ class CompoundComponent(Component):
             weights = [ev.weight for ev in self.events]
 
         # Normalise
-        weights = self._normalise_to_sum_1(np.array(weights))
+        if self.normalise_weights:
+            weights = self._normalise_to_sum_1(np.array(weights))
 
         # Update event weights with normalised
         for ev, w in zip(self.events, weights):
             ev.weight = w
+
+        self.weights = weights
 
     @staticmethod
     def _verify_event_list(events: List[Component]):
